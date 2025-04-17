@@ -1,0 +1,14 @@
+name: rl-mpc-comp
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pinocchio
+  - pip
+  - pip:
+      - numpy
+      - rerun-sdk==0.22.0
+      - trimesh
+      - pytest
+      - hydrax@git+https://github.com/vincekurtz/hydrax # Consider pinning to a different version
