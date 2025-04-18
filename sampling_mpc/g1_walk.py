@@ -36,13 +36,13 @@ file_location = args.dataset_dir + "/" + args.reference_filename
 dl = DataLoader(file_location)
 seg_start = 327
 seg_end = 559
-dl.create_segment("test1", seg_start, seg_end) #600)
-task = SegmentMirrorTask(dl, "test1")
+dl.create_segment("walking_seg", seg_start, seg_end)
+task = SegmentMirrorTask(dl, "walking_seg")
 
 # Set up the controller
 ctrl = CEM(
     task,
-    num_samples=512,
+    num_samples=512, # 1024
     num_elites=20,
     sigma_start=0.1,
     sigma_min=0.1,
@@ -53,7 +53,7 @@ ctrl = CEM(
 
 # Define the model used for simulation
 mj_model = task.mj_model
-mj_model.opt.timestep = 0.01
+mj_model.opt.timestep = 0.001 #0.01
 mj_model.opt.iterations = 10
 mj_model.opt.ls_iterations = 50
 mj_model.opt.o_solimp = [0.9, 0.95, 0.001, 0.5, 2]
@@ -68,7 +68,7 @@ reference[seg_start:seg_end, :2] = reference[seg_start:seg_end, :2] - reference[
 
 # Set the initial state
 mj_data = mujoco.MjData(mj_model)
-mj_data.qpos[:] = reference[327, :]
+mj_data.qpos[:] = reference[seg_start, :]
 
 
 run_interactive(
@@ -77,5 +77,5 @@ run_interactive(
     mj_data,
     frequency=100,
     show_traces=False,
-    reference=reference[327:559, :],  # TODO: Adjust the data here to have the right quaternion convention
+    reference=reference[seg_start:seg_end, :],  # TODO: Adjust the data here to have the right quaternion convention
 )
