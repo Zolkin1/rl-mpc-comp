@@ -34,7 +34,9 @@ args = parser.parse_args()
 # Define the task (cost and dynamics)
 file_location = args.dataset_dir + "/" + args.reference_filename
 dl = DataLoader(file_location)
-dl.create_segment("test1", 327, 600)
+seg_start = 327
+seg_end = 559
+dl.create_segment("test1", seg_start, seg_end) #600)
 task = SegmentMirrorTask(dl, "test1")
 
 # Set up the controller
@@ -62,6 +64,7 @@ pos = dl.data[:, :3]
 xyzw = dl.data[:, 3:7]
 wxyz = np.concatenate([xyzw[:, 3:], xyzw[:, :3]], axis=1)
 reference = np.concatenate([pos, wxyz, dl.data[:, 7:]], axis=1)
+reference[seg_start:seg_end, :2] = reference[seg_start:seg_end, :2] - reference[seg_start, :2]
 
 # Set the initial state
 mj_data = mujoco.MjData(mj_model)
@@ -74,5 +77,5 @@ run_interactive(
     mj_data,
     frequency=100,
     show_traces=False,
-    reference=reference[327:600, :],  # TODO: Adjust the data here to have the right quaternion convention
+    reference=reference[327:559, :],  # TODO: Adjust the data here to have the right quaternion convention
 )

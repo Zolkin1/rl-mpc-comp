@@ -23,18 +23,21 @@ class SegmentMirrorTask(Task):
         self.vel = jnp.diff(dl.data[:, :2], axis=0)
         self.vel = self.vel / 0.033333333
 
+        self.q_offset = jnp.zeros(2)
+
         # Cost weights
-        cost_weights = np.ones(mj_model.nq - 2)     # No tracking on x-y position
-        cost_weights[:5] = 10.0  # Base pose is more important
+        cost_weights = np.ones(mj_model.nq)     # No tracking on x-y position
+        cost_weights[:7] = 10.0  # Base pose is more important
         self.cost_weights = jnp.array(cost_weights)
-        self.vel_weight = 1*jnp.ones(2)        # x-y velocity tracking
+        self.vel_weight = 0*jnp.ones(2) #1*jnp.ones(2)        # x-y velocity tracking
 
     def running_cost(self, state: mjx.Data, control: jax.Array) -> float:
         # Implement the running cost (l) here
         # Configuration error weighs the base pose more heavily
         q_ref = self._get_reference_configuration(state.time)
+        # q_ref = q_ref.at[:2].set(state.qpos[:2])
         q = state.qpos
-        q_err = self.cost_weights * (q[2:] - q_ref[2:])     # Ignore the x-y position
+        q_err = self.cost_weights * (q - q_ref)     # Ignore the x-y position
         configuration_cost = jnp.sum(jnp.square(q_err))
 
         # Base velocity cost
@@ -54,8 +57,9 @@ class SegmentMirrorTask(Task):
     def terminal_cost(self, state: jax.Array) -> float:
         # Implement the terminal cost (phi) here
         q_ref = self._get_reference_configuration(state.time)
+        # q_ref = q_ref.at[:2].set(state.qpos[:2])
         q = state.qpos
-        q_err = self.cost_weights * (q[2:] - q_ref[2:])
+        q_err = self.cost_weights * (q - q_ref)
         # N.B. we multiply by dt to ensure the terminal cost is comparable to
         # the running cost, since this isn't a proper cost-to-go.
         return self.dt * jnp.sum(jnp.square(q_err))
@@ -63,7 +67,18 @@ class SegmentMirrorTask(Task):
     def _get_reference_configuration(self, time):
         """Get the reference."""
         # Using the current time, compute the time within the segment
-        q, _ = self.dl.get_config_seg(self.segment_name, time)
+        q, idx = self.dl.get_config_seg(self.segment_name, time)
+
+        seg = self.dl.get_segment(self.segment_name)
+
+        traj_count = time // (seg.end_time - seg.start_time)
+
+        # Compute the relative end point
+        q_end = self.dl.data[seg.end_idx, :2]
+        q_start = self.dl.data[seg.start_idx, :2]
+        q_rel = q_end - q_start
+        q = q.at[:2].set(q[:2] + (traj_count * q_rel) - q_start[:2])
+
 
         # Modify q to have the correct format
         pos = q[:3]
@@ -75,5 +90,7 @@ class SegmentMirrorTask(Task):
     def _get_reference_vel(self, time):
         """Get the reference velocity."""
         q, idx = self.dl.get_config_seg(self.segment_name, time)
+
+        # TODO: Verify that the velocity is in the correct frame
 
         return self.vel[idx]
