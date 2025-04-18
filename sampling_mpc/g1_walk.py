@@ -77,5 +77,5 @@ run_interactive(
     mj_data,
     frequency=100,
     show_traces=False,
-    reference=reference[seg_start:seg_end, :],  # TODO: Adjust the data here to have the right quaternion convention
+    reference=reference[seg_start:seg_end, :],
 )
