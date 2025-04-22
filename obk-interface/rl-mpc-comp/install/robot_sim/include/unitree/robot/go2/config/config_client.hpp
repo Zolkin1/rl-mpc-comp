@@ -1,0 +1,1 @@
+/home/zolkin/AmberLab/Project-RL-MPC-Comp/rl-mpc-comp/obk-interface/rl-mpc-comp/build/robot_sim/_deps/unitree_sdk-src/include/unitree/robot/go2/config/config_client.hpp
