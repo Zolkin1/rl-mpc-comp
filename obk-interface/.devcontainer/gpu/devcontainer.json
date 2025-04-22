@@ -1,0 +1,23 @@
+{
+    "name": "RL-MPC Comparison GPU Dev Container",
+    "dockerComposeFile": "../../docker/docker-compose.yml",
+    "service": "rl-mpc-comparison",
+    "workspaceFolder": "${localEnv:HOME}/rl-mpc-comp",
+    "shutdownAction": "stopCompose",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "mutantdino.resourcemonitor",
+                "ms-azuretools.vscode-docker",
+                "nvidia.nsight-vscode-edition",
+                "ritwickdey.liveserver",
+                "ms-vscode.cmake-tools",
+                "ms-python.python",
+                "charliermarsh.ruff",
+                "ms-vscode.cpptools",
+                "twxs.cmake",
+                "tamasfe.even-better-toml"
+            ]
+        }
+    }
+}
