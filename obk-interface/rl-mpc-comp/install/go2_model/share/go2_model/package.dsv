@@ -1,8 +1,1 @@
-source;share/go2_model/hook/cmake_prefix_path.ps1
-source;share/go2_model/hook/cmake_prefix_path.dsv
-source;share/go2_model/hook/cmake_prefix_path.sh
-source;share/go2_model/local_setup.bash
-source;share/go2_model/local_setup.dsv
-source;share/go2_model/local_setup.ps1
-source;share/go2_model/local_setup.sh
-source;share/go2_model/local_setup.zsh
+/home/wcompton/repos/rl-mpc-comp/obk-interface/rl-mpc-comp/build/go2_model/ament_cmake_environment_hooks/package.dsv

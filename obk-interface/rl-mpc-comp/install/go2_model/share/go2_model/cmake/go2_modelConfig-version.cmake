@@ -1,1 +1,1 @@
-/home/zolkin/AmberLab/Project-RL-MPC-Comp/rl-mpc-comp/obk-interface/rl-mpc-comp/build/go2_model/ament_cmake_core/go2_modelConfig-version.cmake
+/home/wcompton/repos/rl-mpc-comp/obk-interface/rl-mpc-comp/build/go2_model/ament_cmake_core/go2_modelConfig-version.cmake

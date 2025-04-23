@@ -1,1 +1,1 @@
-/home/zolkin/AmberLab/Project-RL-MPC-Comp/rl-mpc-comp/obk-interface/rl-mpc-comp/build/g1_model/ament_cmake_environment_hooks/local_setup.bash
+/home/wcompton/repos/rl-mpc-comp/obk-interface/rl-mpc-comp/build/g1_model/ament_cmake_environment_hooks/local_setup.bash
