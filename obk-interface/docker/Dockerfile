@@ -62,3 +62,7 @@ WORKDIR /home/${USER}
 RUN source /home/${USER}/obelisk/setup.sh --install-sys-deps --cyclone-perf --obk-aliases --basic --unitree
 
 WORKDIR /home/${USER}
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+RUN rm requirements.txt

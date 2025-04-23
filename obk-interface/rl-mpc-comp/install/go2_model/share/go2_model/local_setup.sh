@@ -1,1 +1,0 @@
-/home/zolkin/AmberLab/Project-RL-MPC-Comp/rl-mpc-comp/obk-interface/rl-mpc-comp/build/go2_model/ament_cmake_environment_hooks/local_setup.sh

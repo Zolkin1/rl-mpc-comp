@@ -1,0 +1,49 @@
+import numpy as np
+from typing import List, Optional
+
+from rclpy.executors import SingleThreadedExecutor
+from obelisk_py.core.utils.ros import spin_obelisk
+
+from rl_locomotion.controller import VelocityTrackingController
+
+
+class Go2VelocityTrackingController(VelocityTrackingController):
+    """Example position setpoint controller."""
+
+    def __init__(self, node_name: str = "go2_velocity_tracking_controller") -> None:
+        """Initialize the example position setpoint controller."""
+        super().__init__(node_name)
+
+        # Get default angles
+        self.joint_names_isaac = [
+            "FL_hip_joint", "FR_hip_joint", "RL_hip_joint", "RR_hip_joint",
+            "FL_thigh_joint", "FR_thigh_joint", "RL_thigh_joint", "RR_thigh_joint",
+            "FL_calf_joint", "FR_calf_joint", "RL_calf_joint", "RR_calf_joint"
+        ]
+        self.joint_names_mujoco = [
+            "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint",
+            "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
+            "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint",
+            "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint"
+        ]
+        self.default_angles_isaac = np.array([0.1, -0.1, 0.1, -0.1, 0.8, 0.8, 1.0, 1.0, -1.5, -1.5, -1.5, -1.5])
+
+    def get_obs(self) -> np.ndarray:
+        return np.concatenate([
+            self.omega,
+            self.proj_g,
+            self.cmd_vel,
+            self.joint_pos - self.default_angles_isaac,
+            self.joint_vel,
+            self.action,
+            self.phase
+        ])
+    
+
+def main(args: Optional[List] = None) -> None:
+    """Main entrypoint."""
+    spin_obelisk(args, Go2VelocityTrackingController, SingleThreadedExecutor)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,1 +1,0 @@
-/home/zolkin/AmberLab/Project-RL-MPC-Comp/rl-mpc-comp/obk-interface/rl-mpc-comp/build/g1_model/ament_cmake_core/g1_modelConfig.cmake

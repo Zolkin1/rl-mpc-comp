@@ -1,0 +1,209 @@
+config: go2_rl_vel_tracking
+onboard:
+  control:
+  # ----- Low Level Controller ----- #
+    - pkg: rl_locomotion
+      params:
+        policy_name: "go2_policy.pt"
+        action_scale: 0.25
+        num_motors: 12
+        phase_period: 0.5
+        stand_threshold: 0.02
+      executable: go2_controller
+      # callback_groups:
+      publishers:
+        - ros_parameter: pub_ctrl_setting
+          topic: /obelisk/go2/low_level_control
+          history_depth: 10
+          callback_group: None
+      subscribers:
+        - ros_parameter: sub_est_setting
+          topic: /obelisk/go2/est_state
+          history_depth: 10
+          callback_group: None
+        # ----- Joystick subscriber ----- #
+        - ros_parameter: sub_vel_cmd_setting
+          topic: /obelisk/go2/high_level_ctrl
+          history_depth: 10
+          callback_group: None
+      timers:
+        - ros_parameter: timer_ctrl_setting
+          timer_period_sec: 0.02
+          callback_group: None
+  # ----- High Level/Execution FSM Controller ----- #
+    - pkg: obelisk_unitree_cpp
+      executable: obelisk_unitree_joystick
+      # callback_groups:
+      publishers:
+      # ----- Execution FSM ----- #
+        - ros_parameter: pub_exec_fsm_setting
+          topic: /obelisk/go2/exec_fsm
+          history_depth: 10
+          callback_group: None
+      # ----- High Level Control ----- #
+        - ros_parameter: pub_ctrl_setting
+          topic: /obelisk/go2/high_level_ctrl
+          history_depth: 10
+          callback_group: None
+      subscribers:
+      # ----- Joystick subscriber ----- #
+        - ros_parameter: sub_est_setting
+          topic: /obelisk/go2/joy
+      timers:
+        - ros_parameter: timer_ctrl_setting
+          timer_period_sec: 100  # Control callback is not being used
+          callback_group: None
+  estimation:
+    - pkg: obelisk_unitree_cpp
+      executable: unitree_go2_estimator
+      # callback_groups:
+      publishers:
+        - ros_parameter: pub_est_setting
+          topic: /obelisk/go2/est_state
+          msg_type: EstimatedState
+          history_depth: 10
+          callback_group: None
+      subscribers:
+        - ros_parameter: sub_sensor_setting
+          topic: /obelisk/go2/joint_encoders
+          msg_type: ObkJointEncoders
+          history_depth: 10
+          callback_group: None
+        - ros_parameter: sub_imu_setting
+          topic: /obelisk/go2/torso_imu
+          msg_type: ObkIMU
+          history_depth: 10
+          callback_group: None
+      timers:
+        - ros_parameter: timer_est_setting
+          timer_period_sec: 0.001
+          callback_group: None
+  # sensing:
+  robot:
+    - is_simulated: True
+      pkg: robot_sim
+      executable: simulation
+      params:
+        ic_keyframe: home #testing
+        # camera_name: comparison_cam # Set the camera to get the same view for sim experiments
+      # callback_groups:
+      publishers:
+        - ros_parameter: pub_true_sim_state_setting
+          topic: /obelisk/go2/true_sim_state
+          history_depth: 10
+          callback_group: None
+      timers:
+        - ros_parameter: timer_true_sim_state_setting
+          history_depth: 10
+          timer_period_sec: 0.002
+          callback_group: None
+      subscribers:
+        - ros_parameter: sub_ctrl_setting
+          topic: /obelisk/go2/low_level_control
+          history_depth: 10
+          callback_group: None
+      sim:
+        - ros_parameter: mujoco_setting
+          robot_pkg: go2_model
+          model_xml_path: scene_rl.xml
+          sensor_settings:
+          # ---------- Joint Encoders ---------- #
+          - topic: /obelisk/go2/joint_encoders
+            dt: 0.001
+            msg_type: ObkJointEncoders
+            sensor_names:
+            # ---------- Joint Positions ---------- #
+              FL_hip_joint_pos_sensor: jointpos
+              FR_hip_joint_pos_sensor: jointpos
+              RL_hip_joint_pos_sensor: jointpos
+              RR_hip_joint_pos_sensor: jointpos
+
+              FL_thigh_joint_pos_sensor: jointpos
+              FR_thigh_joint_pos_sensor: jointpos
+              RL_thigh_joint_pos_sensor: jointpos
+              RR_thigh_joint_pos_sensor: jointpos
+
+              FL_calf_joint_pos_sensor: jointpos
+              FR_calf_joint_pos_sensor: jointpos
+              RL_calf_joint_pos_sensor: jointpos
+              RR_calf_joint_pos_sensor: jointpos
+            # ---------- Joint Velocities ---------- #
+              FL_hip_joint_vel_sensor: jointvel
+              FR_hip_joint_vel_sensor: jointvel
+              RL_hip_joint_vel_sensor: jointvel
+              RR_hip_joint_vel_sensor: jointvel
+
+              FL_thigh_joint_vel_sensor: jointvel
+              FR_thigh_joint_vel_sensor: jointvel
+              RL_thigh_joint_vel_sensor: jointvel
+              RR_thigh_joint_vel_sensor: jointvel
+
+              FL_calf_joint_vel_sensor: jointvel
+              FR_calf_joint_vel_sensor: jointvel
+              RL_calf_joint_vel_sensor: jointvel
+              RR_calf_joint_vel_sensor: jointvel
+          # ---------- Base IMU ---------- #
+          - topic: /obelisk/go2/torso_imu
+            dt: 0.001
+            msg_type: ObkImu
+            sensor_names:
+              imu_acc_sensor: accelerometer
+              imu_gyro_sensor: gyro
+              imu_quat_sensor: framequat
+          # ---------- Mocap ---------- #
+          - topic: /obelisk/go2/torso_pose
+            dt: 0.004
+            msg_type: PoseStamped
+            sensor_names:
+              base_mocap_pos_sensor: framepos
+              base_mocap_quat_sensor: framequat
+          # ---------- Tracking Camera ---------- #
+          - topic: /obelisk/go2/torso_odom
+            dt: 0.005
+            msg_type: Odometry
+            sensor_names:
+              base_tracking_camera_pos_sensor: framepos
+              base_tracking_camera_quat_sensor: framequat
+              base_tracking_camera_vel: velocimeter
+              base_tracking_camera_gyro: gyro
+          # ---------- Force Sensors ---------- #
+          # - topic: /obelisk/go2/force_sensors
+          #   dt: 0.002
+          #   msg_type: ObkForceSensor
+          #   sensor_names:
+          #     FL_force_sensor: force
+          #     FR_force_sensor: force
+          #     RL_force_sensor: force
+          #     RR_force_sensor: force
+          viz_geoms:
+            dt: 1
+            # ----- Tile scene ----- #
+            tile1: box
+  viz:
+    on: True
+    viz_tool: foxglove
+    viz_nodes:
+      - pkg: obelisk_viz_cpp
+        executable: default_robot_viz
+        robot_pkg: go2_model
+        urdf: go2_description.urdf
+        robot_topic: robot_description
+        subscribers:
+          - ros_parameter: sub_viz_est_setting
+            topic: /obelisk/go2/est_state
+            history_depth: 10
+            callback_group: None
+            non_obelisk: False
+        publishers:
+          - ros_parameter: pub_viz_joint_setting
+            topic: joint_states
+            history_depth: 10
+            callback_group: None
+        timers:
+          - ros_parameter: timer_viz_joint_setting
+            timer_period_sec: 0.01
+            callback_group: None
+  joystick:
+    on: True
+    pub_topic: /obelisk/go2/joy
+    sub_topic: /obelisk/go2/joy_feedback
