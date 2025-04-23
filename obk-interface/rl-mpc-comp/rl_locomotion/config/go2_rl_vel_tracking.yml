@@ -4,8 +4,10 @@ onboard:
   # ----- Low Level Controller ----- #
     - pkg: rl_locomotion
       params:
-        policy_path: "/home/wcompton/IsaacLab/logs/rsl_rl/unitree_go2_flat/2025-02-09_17-46-38/exported/policy.pt"
+        policy_name: "go2_policy.pt"
         action_scale: 0.25
+        default_angles: [0.1, -0.1, 0.1, -0.1, 0.8, 0.8, 1.0, 1.0, -1.5, -1.5, -1.5, -1.5]
+        num_motors: 12
       executable: go2_controller
       # callback_groups:
       publishers:

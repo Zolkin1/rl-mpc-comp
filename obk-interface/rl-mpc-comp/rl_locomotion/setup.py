@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            "go2_controller = rl_locomotion.go2_controller:main",
+            "g1_controller = rl_locomotion.g1_controller:main"
         ],
     },
 )

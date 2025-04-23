@@ -1,1 +1,0 @@
-/home/wcompton/repos/rl-mpc-comp/obk-interface/rl-mpc-comp/build/g1_model/ament_cmake_core/g1_modelConfig.cmake

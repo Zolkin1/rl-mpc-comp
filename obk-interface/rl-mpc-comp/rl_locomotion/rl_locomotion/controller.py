@@ -1,6 +1,8 @@
+import os
 import torch
 import numpy as np
 from abc import ABC, abstractmethod
+from ament_index_python.packages import get_package_share_directory
 
 from obelisk_control_msgs.msg import PDFeedForward
 from obelisk_estimator_msgs.msg import EstimatedState
@@ -24,8 +26,10 @@ class VelocityTrackingController(ObeliskController, ABC):
         self.declare_parameter("w_z_max", 0.5)
 
         # Load policy
-        self.declare_parameter("policy_path", "")
-        policy_path = self.get_parameter("policy_path").get_parameter_value().string_value
+        self.declare_parameter("policy_name", "")
+        policy_name = self.get_parameter("policy_name").get_parameter_value().string_value
+        pkg_path = get_package_share_directory('rl_locomotion')
+        policy_path = os.path.join(pkg_path, f'resource/policies/{policy_name}')
         self.policy = torch.load(policy_path)
         self.device = next(self.policy.parameters()).device
 
@@ -52,18 +56,9 @@ class VelocityTrackingController(ObeliskController, ABC):
         self.last_time_to_stand = 0
 
         # Get default angles
-        self.joint_names_isaac = [
-            "FL_hip_joint", "FR_hip_joint", "RL_hip_joint", "RR_hip_joint",
-            "FL_thigh_joint", "FR_thigh_joint", "RL_thigh_joint", "RR_thigh_joint",
-            "FL_calf_joint", "FR_calf_joint", "RL_calf_joint", "RR_calf_joint"
-        ]
-        self.joint_names_mujoco = [
-            "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
-            "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint",
-            "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint",
-            "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint"
-        ]
-        self.declare_parameter("default_angles_isaac", [0.1, -0.1, 0.1, -0.1, 0.8, 0.8, 1.0, 1.0, -1.5, -1.5, -1.5, -1.5])  # Default angles in IsaacSim order
+        self.joint_names_isaac = []
+        self.joint_names_mujoco = []
+        self.declare_parameter("default_angles_isaac", [])  # Default angles in IsaacSim order
         self.default_angles_isaac = np.array(self.get_parameter("default_angles_isaac").get_parameter_value().double_array_value)
         
         # Declare subscriber to velocity commands
@@ -74,12 +69,17 @@ class VelocityTrackingController(ObeliskController, ABC):
             msg_type=VelocityCommand
         )
 
-        self.get_logger().info(f"Policy: {policy_path} loaded on {self.device}. {len(self.kps)}, {len(self.kds)}")
+        self.get_logger().info(f"Policy: {policy_name} loaded on {self.device}. {len(self.kps)}, {len(self.kds)}")
         self.get_logger().info("RL Velocity Tracking node constructor complete.")
 
     def on_configure(self, state: LifecycleState) -> TransitionCallbackReturn:
         """Configure the controller."""
         super().on_configure(state)
+
+        assert len(self.joint_names_isaac) == self.num_motors, f"Number of motors {self.num_motors} does not match number of isaac joint names {len(self.joint_names_isaac)}."
+        assert len(self.joint_names_mujoco) == self.num_motors, f"Number of motors {self.num_motors} does not match number of mujoco joint names {len(self.joint_names_mujoco)}."
+        assert self.default_angles_isaac.shape == (self.num_motors,), f"Default angles {self.default_angles_isaac} does not match number of motors {self.num_motors}."
+
         self.joint_pos = self.default_angles_mujoco.copy()
         self.joint_vel = np.zeros((self.num_motors,))
         self.cmd_vel = np.zeros((3,))
