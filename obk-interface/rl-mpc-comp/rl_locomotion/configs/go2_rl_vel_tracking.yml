@@ -7,6 +7,8 @@ onboard:
         policy_name: "go2_policy.pt"
         action_scale: 0.25
         num_motors: 12
+        phase_period: 0.5
+        stand_threshold: 0.02
       executable: go2_controller
       # callback_groups:
       publishers:

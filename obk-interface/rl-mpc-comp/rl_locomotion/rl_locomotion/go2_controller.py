@@ -33,8 +33,8 @@ class Go2VelocityTrackingController(VelocityTrackingController):
             self.omega,
             self.proj_g,
             self.cmd_vel,
-            (self.joint_pos - self.default_angles_mujoco)[self.mujoco_to_isaac],
-            self.joint_vel[self.mujoco_to_isaac],
+            self.joint_pos - self.default_angles_isaac,
+            self.joint_vel,
             self.action,
             self.phase
         ])

@@ -46,7 +46,7 @@ class VelocityTrackingController(ObeliskController, ABC):
         self.kds = self.get_parameter("kds").get_parameter_value().double_array_value
 
         # Phase info
-        self.declare_parameter("phase_period", 0.3)
+        self.declare_parameter("phase_period", 0.5)
         self.phase_period = self.get_parameter("phase_period").get_parameter_value().double_value
         self.declare_parameter("stand_threshold", 0.01)
         self.stand_threshold = self.get_parameter("stand_threshold").get_parameter_value().double_value
@@ -107,13 +107,14 @@ class VelocityTrackingController(ObeliskController, ABC):
         Parameters:
             x_hat_msg: The Obelisk message containing the state estimate.
         """
+        to_isaac_order = [self.joint_names_isaac.index(joint_name) for joint_name in x_hat_msg.joint_names]
         if len(x_hat_msg.q_joints) == self.num_motors:
-            self.joint_pos = np.array(x_hat_msg.q_joints)
+            self.joint_pos = np.array(x_hat_msg.q_joints)[to_isaac_order]
         else:
             self.get_logger().error(f"Estimated State joint position size does not match URDF! Size is {len(x_hat_msg.q_joints)} instead of {self.num_motors}.")
 
         if len(x_hat_msg.v_joints) == self.num_motors:
-            self.joint_vel = np.array(x_hat_msg.v_joints)
+            self.joint_vel = np.array(x_hat_msg.v_joints)[to_isaac_order]
         else:
             self.get_logger().error(f"Estimated State joint velocity size does not match URDF! Size is {len(x_hat_msg.v_joints)} instead of {self.num_motors}.")
 
