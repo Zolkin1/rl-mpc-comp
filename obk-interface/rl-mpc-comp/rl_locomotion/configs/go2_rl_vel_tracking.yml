@@ -6,7 +6,6 @@ onboard:
       params:
         policy_name: "go2_policy.pt"
         action_scale: 0.25
-        default_angles: [0.1, -0.1, 0.1, -0.1, 0.8, 0.8, 1.0, 1.0, -1.5, -1.5, -1.5, -1.5]
         num_motors: 12
       executable: go2_controller
       # callback_groups:
@@ -81,10 +80,10 @@ onboard:
   robot:
     # === simulation ===
     - is_simulated: True
-      pkg: obelisk_unitree_cpp
-      executable: obelisk_unitree_sim
+      pkg: robot_sim
+      executable: simulation
       params:
-        ic_keyframe: standing_isaac
+        ic_keyframe: home
     # === hardware ===
     # - is_simulated: False
     #   pkg: obelisk_unitree_cpp
@@ -136,11 +135,8 @@ onboard:
           callback_group: None
       sim:
         - ros_parameter: mujoco_setting
-          n_u: 16
-          time_step: 0.002
-          num_steps_per_viz: 5
-          robot_pkg: go2_rl_description
-          model_xml_path: go2_rl_scene.xml
+          robot_pkg: go2_model
+          model_xml_path: scene.xml
           sensor_settings:
           - topic: /obelisk/go2/joint_encoders
             dt: 0.002
@@ -203,8 +199,8 @@ onboard:
     viz_nodes:
       - pkg: obelisk_viz_cpp
         executable: default_robot_viz
-        robot_pkg: go2_rl_description
-        urdf: go2.urdf
+        robot_pkg: go2_model
+        urdf: go2_description.urdf
         robot_topic: robot_description
         subscribers:
           - ros_parameter: sub_viz_est_setting

@@ -30,7 +30,7 @@ class VelocityTrackingController(ObeliskController, ABC):
         policy_name = self.get_parameter("policy_name").get_parameter_value().string_value
         pkg_path = get_package_share_directory('rl_locomotion')
         policy_path = os.path.join(pkg_path, f'resource/policies/{policy_name}')
-        self.policy = torch.load(policy_path)
+        self.policy = torch.jit.load(policy_path)
         self.device = next(self.policy.parameters()).device
 
         # Set action scale, number of robot joints
@@ -58,8 +58,7 @@ class VelocityTrackingController(ObeliskController, ABC):
         # Get default angles
         self.joint_names_isaac = []
         self.joint_names_mujoco = []
-        self.declare_parameter("default_angles_isaac", [])  # Default angles in IsaacSim order
-        self.default_angles_isaac = np.array(self.get_parameter("default_angles_isaac").get_parameter_value().double_array_value)
+        self.default_angles_isaac = np.zeros((0,))
         
         # Declare subscriber to velocity commands
         self.register_obk_subscription(
@@ -69,16 +68,23 @@ class VelocityTrackingController(ObeliskController, ABC):
             msg_type=VelocityCommand
         )
 
-        self.get_logger().info(f"Policy: {policy_name} loaded on {self.device}. {len(self.kps)}, {len(self.kds)}")
+        self.get_logger().info(f"Policy: {policy_path} loaded on {self.device}.")
         self.get_logger().info("RL Velocity Tracking node constructor complete.")
 
     def on_configure(self, state: LifecycleState) -> TransitionCallbackReturn:
         """Configure the controller."""
         super().on_configure(state)
 
-        assert len(self.joint_names_isaac) == self.num_motors, f"Number of motors {self.num_motors} does not match number of isaac joint names {len(self.joint_names_isaac)}."
-        assert len(self.joint_names_mujoco) == self.num_motors, f"Number of motors {self.num_motors} does not match number of mujoco joint names {len(self.joint_names_mujoco)}."
-        assert self.default_angles_isaac.shape == (self.num_motors,), f"Default angles {self.default_angles_isaac} does not match number of motors {self.num_motors}."
+        if len(self.joint_names_isaac) != self.num_motors:
+            self.get_logger().error(f"Number of motors {self.num_motors} does not match number of isaac joint names {len(self.joint_names_isaac)}.")
+        if len(self.joint_names_mujoco) != self.num_motors:
+            self.get_logger().error(f"Number of motors {self.num_motors} does not match number of mujoco joint names {len(self.joint_names_mujoco)}.")
+        if self.default_angles_isaac.shape != (self.num_motors,):   
+            self.get_logger().error(f"Default angles {self.default_angles_isaac} does not match number of motors {self.num_motors}.")
+
+        self.mujoco_to_isaac = [self.joint_names_mujoco.index(joint_name) for joint_name in self.joint_names_isaac]
+        self.isaac_to_mujoco = [self.joint_names_isaac.index(joint_name) for joint_name in self.joint_names_mujoco]
+        self.default_angles_mujoco = self.default_angles_isaac[self.isaac_to_mujoco]
 
         self.joint_pos = self.default_angles_mujoco.copy()
         self.joint_vel = np.zeros((self.num_motors,))
@@ -91,9 +97,7 @@ class VelocityTrackingController(ObeliskController, ABC):
         self.action = self.zero_action.tolist()
         self.t_start = None
 
-        self.mujoco_to_isaac = [self.joint_names_mujoco.index(joint_name) for joint_name in self.joint_names_isaac]
-        self.isaac_to_mujoco = [self.joint_names_isaac.index(joint_name) for joint_name in self.joint_names_mujoco]
-        self.default_angles_mujoco = self.default_angles_isaac[self.isaac_to_mujoco]
+        self.get_logger().info("RL Velocity Tracking node configuration complete.")
         
         return TransitionCallbackReturn.SUCCESS
 
