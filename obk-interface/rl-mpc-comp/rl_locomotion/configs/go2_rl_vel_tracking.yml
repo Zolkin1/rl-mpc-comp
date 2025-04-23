@@ -103,7 +103,7 @@ onboard:
       sim:
         - ros_parameter: mujoco_setting
           robot_pkg: go2_model
-          model_xml_path: scene.xml
+          model_xml_path: scene_rl.xml
           sensor_settings:
           # ---------- Joint Encoders ---------- #
           - topic: /obelisk/go2/joint_encoders
